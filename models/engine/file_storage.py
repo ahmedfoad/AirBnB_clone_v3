@@ -22,10 +22,12 @@ class FileStorage:
             return self.__objects
 
         if cls != "":
+            dic = {}
             for k, v in self.__objects.items():
-                if cls == k.split(".")[0]:
-                    new_dict[k] = v
-            return new_dict
+                name = k.split(".")
+                if name[0] in str(cls):
+                    dic[k] = v
+            return (dic)
         else:
             return self.__objects
 
@@ -73,37 +75,22 @@ class FileStorage:
             FileStorage.__objects.pop(key, None)
             self.save()
 
+    def get(self, cls, id):
+        """" A method to retrieve one object """
+        grab_obj = self.all(cls)
+        for k, v in grab_obj.items():
+            getstr = cls + '.' + id
+            if k == getstr:
+                return (v)
+        return (None)
+
+    def count(self, cls=None):
+        """ A method to count the number of objects in storage """
+        obj = self.all(cls)
+        return (len(obj))
+
     def close(self):
         '''
         Deserialize JSON file to objects
         '''
         self.reload()
-
-    def get(self, cls, id):
-        '''
-        gets an object
-        Args:
-            cls (str): class name
-            id (str): object ID
-        Returns:
-            an object based on class name and its ID
-        '''
-        obj_dict = self.all(cls)
-        for k, v in obj_dict.items():
-            matchstring = cls + '.' + id
-            if k == matchstring:
-                return v
-
-        return None
-
-    def count(self, cls=None):
-        '''
-        counts number of objects in a class (if given)
-        Args:
-            cls (str): class name
-        Returns:
-            number of objects in class, if no class name given
-            return total number of objects in database
-        '''
-        obj_dict = self.all(cls)
-        return len(obj_dict)

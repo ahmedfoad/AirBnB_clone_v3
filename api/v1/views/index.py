@@ -1,30 +1,34 @@
 #!/usr/bin/python3
-"""index"""
-from api.v1.views import app_views
+"""
+an endpoint that retrieves the number of each objects by type
+"""
 from flask import jsonify
+from models import classes
 from models import storage
-from models.user import User
-from models.place import Place
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.review import Review
-
-classes = {"users": "User", "places": "Place", "states": "State",
-           "cities": "City", "amenities": "Amenity",
-           "reviews": "Review"}
+from api.v1.views import app_views
 
 
-@app_views.route('/status', methods=['GET'])
+@app_views.route("/status")
 def status():
-    ''' routes to status page '''
-    return jsonify({'status': 'OK'})
+    """
+    return status in json
+    """
+    stat = {"status": "OK"}
+    return (jsonify(stat))
 
 
-@app_views.route('/stats', methods=['GET'])
-def count():
-    '''retrieves the number of each objects by type'''
-    count_dict = {}
-    for cls in classes:
-        count_dict[cls] = storage.count(classes[cls])
-    return jsonify(count_dict)
+@app_views.route("/stats")
+def stats():
+    """
+    endpoint that retrieves number of obj by type
+    """
+    dic = {"amenities": 0, "cities": 0, "places": 0,
+           "reviews": 0, "states": 0, "users": 0}
+    cls = ["Amenity", "City", "Place", "Review", "State", "User"]
+    st = ["amenities", "cities", "places", "reviews", "states", "users"]
+    for c in range(len(cls)):
+        try:
+            dic[st[c]] = storage.count(cls[c])
+        except Exception:
+            continue
+    return (jsonify(dic))
