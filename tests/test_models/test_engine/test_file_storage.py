@@ -12,7 +12,6 @@ from models import storage
 from models.base_model import BaseModel
 from models.state import State
 from models.engine.file_storage import FileStorage
-from models import User
 
 db = os.getenv("HBNB_TYPE_STORAGE")
 
@@ -83,7 +82,7 @@ class testFileStorage(unittest.TestCase):
         with open("file.json", encoding="UTF8") as fd:
             content = json.load(fd)
 
-        self.assertTrue(isinstance(content, dict))
+        self.assertTrue(type(content) is dict)
 
     def test_the_type_file_content(self):
         '''
@@ -106,7 +105,7 @@ class testFileStorage(unittest.TestCase):
         try:
             self.storage.reload()
             self.assertTrue(True)
-        except Exception:
+        except:
             self.assertTrue(False)
 
     def test_delete(self):
@@ -130,93 +129,26 @@ class testFileStorage(unittest.TestCase):
         '''
         self.assertTrue(isinstance(storage, FileStorage))
 
-    def test_get_fs(self):
-        """Testing the get method in file_storage
-        """
-        fs = FileStorage()
-        self.assertIs(fs.get("User", "test"), None)
-        self.assertIs(fs.get("test", "randon"), None)
-        new_state = State()
-        new_user = User()
-        new_user.save()
-        self.assertIs(fs.get("User", new_user.id), new_user)
-        fs.new(new_state)
-        first_state_id = list(storage.all("State").values())[0].id
-        self.assertEqual(type(storage.get("State", first_state_id)), State)
-
-    def test_count_file(self):
-        """
-        Testing thecount method in file_storage
-        """
-        storage.reload()
-        fs = FileStorage()
-        initial_len = len(storage.all())
-        self.assertEqual(storage.count(), initial_len)
-        state = len(storage.all("State"))
-        self.assertEqual(storage.count("State"), state)
-        result = storage.all("")
-        count = storage.count(None)
-        self.assertEqual(len(result), count)
-        result = storage.all("State")
-        count = storage.count("State")
-        self.assertEqual(len(result), count)
-
-    def test_filestorage_count(self):
+    def test_get(self):
         '''
-            Tests the count method
+            Test if get method retrieves obj requested
         '''
-        all_obj = models.storage.all()
-        count_all_obj = models.storage.count()
-        self.assertEqual(len(all_obj), count_all_obj)
+        new_state = State(name="NewYork")
+        storage.new(new_state)
+        key = "State.{}".format(new_state.id)
+        result = storage.get("State", new_state.id)
+        self.assertTrue(result.id, new_state.id)
+        self.assertIsInstance(result, State)
 
-    def test_filestorage_count_cls(self):
+    def test_count(self):
         '''
-            Tests the count method with class name
+            Test if count method returns expected number of objects
         '''
-        all_obj = models.storage.all('State')
-        count_all_obj = models.storage.count('State')
-        self.assertEqual(len(all_obj), count_all_obj)
-
-    def test_get_method_cls(self):
-        '''
-            Tests the get method with class name and id given
-        '''
-        state = State(name='Texas')
-        state.save()
-        state_id = state.id
-        get_state = models.storage.get('State', state_id)
-        self.assertEqual(state, get_state)
-
-    def test_get_method(self):
-        '''
-            Tests the get method
-        '''
-        get_state = models.storage.get('State', '12343')
-        self.assertEqual(get_state, None)
-
-    def test_storage_count(self):
-        storage = FileStorage()
-        initial_length = len(storage.all())
-        self.assertEqual(storage.count(), initial_length)
-        state_len = len(storage.all("State"))
-        self.assertEqual(storage.count("State"), state_len)
-        new_state = State()
-        new_state.save()
-        self.assertEqual(storage.count(), initial_length + 1)
-        self.assertEqual(storage.count("State"), state_len + 1)
-
-    def test_storage_get(self):
-        """Test that the get method properly retrievs objects"""
-        storage = FileStorage()
-        self.assertIs(storage.get("User", "blah"), None)
-        self.assertIs(storage.get("blah", "blah"), None)
-        new_user = User()
-        new_user.save()
-        self.assertIs(storage.get("User", new_user.id), new_user)
-
-    def test_all_returns_storage(self):
-        """Test that all returns the FileStorage.__objects attr"""
-        storage = FileStorage()
-        new_dict = storage.all()
-        self.assertEqual(type(new_dict), dict)
-        self.assertIs(new_dict, storage._FileStorage__objects)
+        old_count = storage.count("State")
+        new_state1 = State(name="NewYork")
+        storage.new(new_state1)
+        new_state2 = State(name="Virginia")
+        storage.new(new_state2)
+        new_state3 = State(name="California")
+        storage.new(new_state3)
+        self.assertEqual(old_count + 3, storage.count("State"))

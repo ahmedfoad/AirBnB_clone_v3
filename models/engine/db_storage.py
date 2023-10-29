@@ -38,7 +38,7 @@ class DBStorage:
         '''
         db_dict = {}
 
-        if cls is not None and cls is not "":
+        if cls is not None and cls != '':
             objs = self.__session.query(models.classes[cls]).all()
             for obj in objs:
                 key = "{}.{}".format(obj.__class__.__name__, obj.id)
@@ -83,28 +83,37 @@ class DBStorage:
         Session = scoped_session(factory)
         self.__session = Session()
 
-    def get(self, cls, id):
-        """" A method to retrieve one object
-        grab_obj = self.all(cls).values()
-        for obj in grab_obj:
-            if obj.id == str(id):
-                return obj
-        return None
-        """
-        grab_obj = models.storage.all(cls)
-        for k, v in grab_obj.items():
-            getstr = cls + '.' + id
-            if k == getstr:
-                return (v)
-        return (None)
-
-    def count(self, cls=None):
-        """ A method to count the number of objects in storage """
-        num_obj = models.storage.all(cls)
-        return len(num_obj)
-
     def close(self):
         '''
             Remove private session attribute
         '''
         self.__session.close()
+
+    def get(self, cls, id):
+        '''
+        gets an object
+        Args:
+            cls (str): class name
+            id (str): object ID
+        Returns:
+            an object based on class name and its ID
+        '''
+        obj_dict = models.storage.all(cls)
+        for k, v in obj_dict.items():
+            matchstring = cls + '.' + id
+            if k == matchstring:
+                return v
+
+        return None
+
+    def count(self, cls=None):
+        '''
+        counts number of objects of a class (if given)
+        Args:
+            cls (str): class name
+        Returns:
+            number of objects in class, if no class name given
+            return total number of objects in database
+        '''
+        obj_dict = models.storage.all(cls)
+        return len(obj_dict)
